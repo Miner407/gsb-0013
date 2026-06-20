@@ -36,10 +36,10 @@ export default function Layout() {
   if (isMobile) {
     return (
       <div className="flex flex-col h-screen">
-        <main className="flex-1 overflow-y-auto p-4">
+        <main className="flex-1 overflow-y-auto p-4 pb-24">
           <Outlet />
         </main>
-        <nav className="flex items-center justify-around bg-white border-t border-warm-100 px-2 py-1">
+        <nav className="fixed bottom-0 left-0 right-0 flex items-center justify-around bg-white border-t border-warm-100 px-2 py-1 z-40 safe-pb">
           {tabItems.map(({ to, label, icon: Icon }) => (
             <NavLink
               key={to}

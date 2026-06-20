@@ -7,6 +7,12 @@ import Modal from '@/components/Modal';
 const speciesOptions = ['猫', '狗', '兔子', '仓鼠', '鸟', '其他'];
 const emojiOptions = ['🐱', '🐶', '🐰', '🐹', '🐦', '🐠', '🐢', '🦎'];
 
+interface FormErrors {
+  name?: string;
+  species?: string;
+  birthday?: string;
+}
+
 export default function Profile() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -27,6 +33,7 @@ export default function Profile() {
   const [avatarEmoji, setAvatarEmoji] = useState(isNew ? '🐱' : currentPet?.avatarEmoji ?? '🐱');
   const [notes, setNotes] = useState(isNew ? '' : currentPet?.notes ?? '');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [errors, setErrors] = useState<FormErrors>({});
 
   if (!isNew && !currentPet) {
     return (
@@ -45,8 +52,30 @@ export default function Profile() {
     );
   }
 
+  function validateForm(): boolean {
+    const newErrors: FormErrors = {};
+
+    if (!name.trim()) {
+      newErrors.name = '宠物名字不能为空';
+    }
+
+    if (!species) {
+      newErrors.species = '请选择宠物种类';
+    }
+
+    if (birthday) {
+      const today = new Date().toISOString().split('T')[0];
+      if (birthday > today) {
+        newErrors.birthday = '生日不能晚于今天';
+      }
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  }
+
   function handleSave() {
-    if (!name.trim()) return;
+    if (!validateForm()) return;
     if (isNew) {
       addPet({ name: name.trim(), species, breed, birthday, avatarEmoji, notes });
       navigate('/');
@@ -89,27 +118,35 @@ export default function Profile() {
         </div>
 
         <div>
-          <label className="label-text">名字</label>
+          <label className="label-text">名字 <span className="text-coral-400">*</span></label>
           <input
-            className="input-field"
+            className={`input-field ${errors.name ? 'border-coral-400 focus:ring-coral-400' : ''}`}
             value={name}
-            onChange={(e) => setName(e.target.value)}
+            onChange={(e) => {
+              setName(e.target.value);
+              if (errors.name) setErrors((prev) => ({ ...prev, name: undefined }));
+            }}
             placeholder="宠物的名字"
           />
+          {errors.name && <p className="text-xs text-coral-400 mt-1">{errors.name}</p>}
         </div>
 
         <div>
-          <label className="label-text">种类</label>
+          <label className="label-text">种类 <span className="text-coral-400">*</span></label>
           <select
-            className="input-field"
+            className={`input-field ${errors.species ? 'border-coral-400 focus:ring-coral-400' : ''}`}
             value={species}
-            onChange={(e) => setSpecies(e.target.value)}
+            onChange={(e) => {
+              setSpecies(e.target.value);
+              if (errors.species) setErrors((prev) => ({ ...prev, species: undefined }));
+            }}
           >
             <option value="">请选择</option>
             {speciesOptions.map((s) => (
               <option key={s} value={s}>{s}</option>
             ))}
           </select>
+          {errors.species && <p className="text-xs text-coral-400 mt-1">{errors.species}</p>}
         </div>
 
         <div>
@@ -126,10 +163,14 @@ export default function Profile() {
           <label className="label-text">生日</label>
           <input
             type="date"
-            className="input-field"
+            className={`input-field ${errors.birthday ? 'border-coral-400 focus:ring-coral-400' : ''}`}
             value={birthday}
-            onChange={(e) => setBirthday(e.target.value)}
+            onChange={(e) => {
+              setBirthday(e.target.value);
+              if (errors.birthday) setErrors((prev) => ({ ...prev, birthday: undefined }));
+            }}
           />
+          {errors.birthday && <p className="text-xs text-coral-400 mt-1">{errors.birthday}</p>}
         </div>
 
         <div>

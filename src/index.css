@@ -28,6 +28,22 @@ body {
   }
 }
 
+@layer utilities {
+  .safe-pb {
+    padding-bottom: env(safe-area-inset-bottom, 0);
+  }
+  .safe-pt {
+    padding-top: env(safe-area-inset-top, 0);
+  }
+  .scrollbar-none {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 @layer components {
   .btn-primary {
     @apply bg-warm-500 text-white px-5 py-2.5 rounded-full font-medium

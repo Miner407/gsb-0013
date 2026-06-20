@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { Syringe, Scale, Utensils, HeartPulse, Plus } from 'lucide-react';
+import { Syringe, Scale, Utensils, HeartPulse, Plus, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { usePetStore } from '@/store/petStore';
 import PetSwitcher from '@/components/PetSwitcher';
 import WeightChart from '@/components/WeightChart';
@@ -44,16 +44,35 @@ export default function Dashboard() {
     .sort((a, b) => b.date.localeCompare(a.date));
   const petFeedings = feedingRecords
     .filter((r) => r.petId === currentPetId)
-    .sort((a, b) => b.date.localeCompare(a.date));
+    .sort((a, b) => b.date.localeCompare(a.date) || b.time.localeCompare(a.time));
   const petMedicals = medicalRecords
     .filter((r) => r.petId === currentPetId)
     .sort((a, b) => b.date.localeCompare(a.date));
 
   const today = getTodayStr();
-  const fedToday = petFeedings.some((r) => r.date === today);
+
+  const todayFeedings = petFeedings.filter((r) => r.date === today);
+  const fedToday = todayFeedings.length > 0;
 
   const latestVaccine = petVaccines[0];
+
+  const upcomingVaccine = petVaccines
+    .filter((r) => r.nextDate && r.nextDate >= today)
+    .sort((a, b) => a.nextDate.localeCompare(b.nextDate))[0];
+
+  const vaccineDisplay = upcomingVaccine || latestVaccine;
+  const isVaccineUpcoming = !!upcomingVaccine;
+
   const latestWeight = petWeights[0];
+  const previousWeight = petWeights[1];
+  let weightChange: 'up' | 'down' | 'same' | null = null;
+  let weightChangeValue = 0;
+  if (latestWeight && previousWeight) {
+    weightChangeValue = latestWeight.weight - previousWeight.weight;
+    if (weightChangeValue > 0) weightChange = 'up';
+    else if (weightChangeValue < 0) weightChange = 'down';
+    else weightChange = 'same';
+  }
 
   const allRecords: { type: string; date: string; label: string }[] = [
     ...petVaccines.map((r) => ({ type: 'vaccine', date: r.date, label: `疫苗: ${r.name}` })),
@@ -79,22 +98,45 @@ export default function Dashboard() {
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="card p-4">
-          <div className="text-xs text-warm-400 mb-1">最近疫苗</div>
-          {latestVaccine ? (
-            <div className="text-sm font-medium text-warm-800">{latestVaccine.name}</div>
+          <div className="text-xs text-warm-400 mb-1">
+            {isVaccineUpcoming ? '下次疫苗' : '最近疫苗'}
+          </div>
+          {vaccineDisplay ? (
+            <div className="text-sm font-medium text-warm-800">{vaccineDisplay.name}</div>
           ) : (
             <div className="text-sm text-warm-300">暂无记录</div>
           )}
-          {latestVaccine && (
-            <div className="text-xs text-warm-400 mt-0.5">{latestVaccine.date}</div>
+          {vaccineDisplay && (
+            <div className="text-xs mt-0.5">
+              {isVaccineUpcoming ? (
+                <span className={vaccineDisplay.nextDate === today ? 'text-coral-400 font-medium' : 'text-sage-500'}>
+                  {vaccineDisplay.nextDate === today ? '今天接种' : `${vaccineDisplay.nextDate} 待接种`}
+                </span>
+              ) : (
+                <span className="text-warm-400">{vaccineDisplay.date}</span>
+              )}
+            </div>
           )}
         </div>
 
         <div className="card p-4">
           <div className="text-xs text-warm-400 mb-1">当前体重</div>
           {latestWeight ? (
-            <div className="text-sm font-medium text-warm-800">
-              {latestWeight.weight} {latestWeight.unit}
+            <div className="flex items-baseline gap-2">
+              <span className="text-sm font-medium text-warm-800">
+                {latestWeight.weight} {latestWeight.unit}
+              </span>
+              {weightChange && (
+                <span className={`text-xs flex items-center gap-0.5 ${
+                  weightChange === 'up' ? 'text-coral-400' :
+                  weightChange === 'down' ? 'text-sage-500' : 'text-warm-400'
+                }`}>
+                  {weightChange === 'up' && <TrendingUp size={12} />}
+                  {weightChange === 'down' && <TrendingDown size={12} />}
+                  {weightChange === 'same' && <Minus size={12} />}
+                  {weightChangeValue > 0 ? '+' : ''}{weightChangeValue.toFixed(1)}
+                </span>
+              )}
             </div>
           ) : (
             <div className="text-sm text-warm-300">暂无记录</div>
@@ -107,9 +149,14 @@ export default function Dashboard() {
         <div className="card p-4">
           <div className="text-xs text-warm-400 mb-1">今日喂食</div>
           {fedToday ? (
-            <span className="inline-block text-xs font-medium px-2.5 py-1 rounded-full bg-sage-100 text-sage-600">
-              已喂食 ✅
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="inline-block text-xs font-medium px-2.5 py-1 rounded-full bg-sage-100 text-sage-600">
+                已喂食 ✅
+              </span>
+              <span className="text-xs text-warm-400">
+                {todayFeedings.length} 次
+              </span>
+            </div>
           ) : (
             <span className="inline-block text-xs font-medium px-2.5 py-1 rounded-full bg-coral-100 text-coral-500">
               未喂食

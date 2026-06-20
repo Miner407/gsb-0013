@@ -1,57 +1,209 @@
-# React + TypeScript + Vite
+# 宠物喂养与健康记录本
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+一个温暖的宠物健康管理 Web 应用，帮助你记录毛孩子的每一天。
 
-Currently, two official plugins are available:
+## ✨ 功能介绍
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+### 宠物档案
+- 支持多只宠物管理，可快速切换
+- 记录宠物基本信息：名字、种类、品种、生日、头像、备注
+- 支持新增、编辑、删除宠物档案
 
-## Expanding the ESLint configuration
+### 疫苗记录
+- 记录疫苗名称、接种日期、下次接种日期
+- 自动标记过期疫苗提醒
+- 支持新增、编辑、删除疫苗记录
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### 体重记录
+- 记录体重数值和单位（kg / g / lb）
+- 可视化体重趋势图表
+- 显示相邻两次体重变化（上升/下降/持平）
+- 支持新增、编辑、删除体重记录
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+### 喂食记录
+- 记录喂食日期、时间、食物类型、份量
+- 月历视图直观展示喂食情况
+- 今日喂食次数统计
+- 支持新增、编辑、删除喂食记录
+
+### 就医记录
+- 记录就医日期、医院、症状、医嘱
+- 支持展开/收起查看详细内容
+- 支持新增、编辑、删除就医记录
+
+### 健康概览（首页仪表盘）
+- 最近/下次疫苗接种状态
+- 当前体重及变化趋势
+- 今日喂食状态和次数统计
+- 体重趋势图表
+- 快捷操作入口
+- 最近记录时间线
+
+## 🚀 快速开始
+
+### 环境要求
+- Node.js >= 18
+- npm 或 pnpm
+
+### 安装依赖
+
+```bash
+npm install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### 启动开发服务器
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default tseslint.config({
-  extends: [
-    // other configs...
-    // Enable lint rules for React
-    reactX.configs['recommended-typescript'],
-    // Enable lint rules for React DOM
-    reactDom.configs.recommended,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+```bash
+npm run dev
 ```
+
+启动后访问 `http://localhost:5173` 即可使用。
+
+### 构建生产版本
+
+```bash
+npm run build
+```
+
+构建产物将输出到 `dist` 目录。
+
+### 本地预览构建结果
+
+```bash
+npm run preview
+```
+
+## 💾 数据持久化
+
+本应用使用浏览器的 `localStorage` 进行数据持久化存储。
+
+- 所有宠物档案和健康记录都会自动保存到本地
+- 刷新页面或关闭浏览器后数据不会丢失
+- 数据仅存储在你的浏览器中，不会上传到任何服务器
+- 清除浏览器数据会导致记录丢失，请定期备份重要信息
+
+存储键名：`pet-health-journal`
+
+## 📱 响应式设计
+
+- **桌面端**：左侧侧边栏导航 + 主内容区
+- **移动端**：底部导航栏，适配小屏操作
+- 支持安全区域适配（iPhone 底部安全区）
+
+## 🧪 验证与测试
+
+### 代码质量检查
+
+```bash
+# ESLint 检查
+npm run lint
+
+# TypeScript 类型检查
+npm run check
+
+# 构建检查
+npm run build
+```
+
+### 功能验证清单
+
+以下是手动测试流程，覆盖核心功能：
+
+#### 1. 新增宠物
+- 打开应用，点击「添加你的第一只宠物」
+- 填写宠物名字、选择种类、填写生日等信息
+- 点击「添加宠物」，验证成功跳转到仪表盘
+- 在侧边栏/宠物切换器中验证新宠物已显示
+
+#### 2. 多宠物切换
+- 添加至少两只宠物
+- 点击不同宠物头像，验证当前宠物切换
+- 验证各页面记录随宠物切换而变化
+
+#### 3. 添加记录（以疫苗为例，其他类别类似）
+- 进入「疫苗记录」页面
+- 点击右上角 + 按钮
+- 填写疫苗名称、选择日期
+- 点击「添加」，验证新记录出现在列表中
+- 验证仪表盘首页的最近疫苗信息已更新
+
+#### 4. 编辑记录
+- 在记录列表中点击「编辑」图标（铅笔）
+- 修改记录内容
+- 点击「保存修改」，验证列表中信息已更新
+
+#### 5. 删除记录
+- 在记录列表中点击「删除」图标（垃圾桶）
+- 验证记录从列表中消失
+- 验证相关统计数据已更新
+
+#### 6. localStorage 持久化
+- 添加一些宠物和记录
+- 刷新浏览器页面
+- 验证所有数据仍然存在
+
+#### 7. 表单校验
+- 尝试提交空表单，验证必填字段提示
+- 尝试输入不合理数据（如体重为负数），验证校验提示
+- 下次接种日期早于接种日期时，验证提示
+
+#### 8. 移动端体验
+- 将浏览器窗口缩小到手机宽度（< 768px）
+- 验证底部导航栏正常显示
+- 验证页面内容不被底部导航遮挡
+- 验证表单提交按钮始终可点击
+
+## 🛠️ 技术栈
+
+- **框架**：React 18 + TypeScript
+- **构建工具**：Vite
+- **状态管理**：Zustand（带 localStorage 持久化）
+- **路由**：React Router
+- **样式**：Tailwind CSS
+- **图标**：Lucide React
+- **图表**：Canvas API 自绘体重趋势图
+
+## 📁 项目结构
+
+```
+src/
+├── components/       # 通用组件
+│   ├── Layout.tsx    # 布局组件（含响应式导航）
+│   ├── Sidebar.tsx   # 桌面端侧边栏
+│   ├── PetSwitcher.tsx # 宠物切换器
+│   ├── Modal.tsx     # 模态框
+│   └── WeightChart.tsx # 体重趋势图
+├── pages/            # 页面组件
+│   ├── Dashboard.tsx # 首页仪表盘
+│   ├── Profile.tsx   # 宠物档案
+│   ├── Vaccine.tsx   # 疫苗记录
+│   ├── Weight.tsx    # 体重记录
+│   ├── Feeding.tsx   # 喂食记录
+│   └── Medical.tsx   # 就医记录
+├── store/            # 状态管理
+│   └── petStore.ts   # Zustand store
+├── types/            # TypeScript 类型定义
+│   └── index.ts
+├── lib/              # 工具库
+│   └── utils.ts
+├── hooks/            # 自定义 Hooks
+│   └── useTheme.ts
+├── assets/           # 静态资源
+├── App.tsx           # 应用入口
+├── main.tsx          # React 挂载点
+└── index.css         # 全局样式
+```
+
+## 📝 使用流程
+
+1. **首次使用**：打开应用 → 添加宠物档案 → 开始记录
+2. **日常记录**：切换到对应宠物 → 选择记录类型 → 添加新记录
+3. **查看趋势**：在首页或对应页面查看统计和图表
+4. **修改记录**：点击记录的编辑按钮 → 修改内容 → 保存
+5. **删除记录**：点击记录的删除按钮（删除宠物会同时删除所有相关记录）
+
+## ⚠️ 注意事项
+
+- 数据仅保存在本地浏览器中，清除浏览器数据会导致记录丢失
+- 建议定期截图或手动备份重要的健康记录
+- 本应用仅用于记录参考，不能替代专业兽医建议

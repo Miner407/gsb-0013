@@ -1,8 +1,9 @@
 import { useState, useMemo } from 'react';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, Pencil } from 'lucide-react';
 import { usePetStore } from '@/store/petStore';
 import Modal from '@/components/Modal';
 import { cn } from '@/lib/utils';
+import type { FeedingRecord } from '@/types';
 
 function getTodayStr() {
   return new Date().toISOString().split('T')[0];
@@ -11,17 +12,25 @@ function getTodayStr() {
 const WEEKDAYS = ['日', '一', '二', '三', '四', '五', '六'];
 const foodTypeOptions = ['干粮', '湿粮', '零食', '自制', '其他'];
 
+interface FormErrors {
+  date?: string;
+  amount?: string;
+}
+
 export default function Feeding() {
   const currentPetId = usePetStore((s) => s.currentPetId);
   const feedingRecords = usePetStore((s) => s.feedingRecords);
   const addFeedingRecord = usePetStore((s) => s.addFeedingRecord);
+  const updateFeedingRecord = usePetStore((s) => s.updateFeedingRecord);
   const deleteFeedingRecord = usePetStore((s) => s.deleteFeedingRecord);
 
   const [showModal, setShowModal] = useState(false);
+  const [editingRecord, setEditingRecord] = useState<FeedingRecord | null>(null);
   const [date, setDate] = useState(getTodayStr());
   const [time, setTime] = useState('');
   const [foodType, setFoodType] = useState('干粮');
   const [amount, setAmount] = useState('');
+  const [errors, setErrors] = useState<FormErrors>({});
 
   const today = getTodayStr();
   const [viewYear, setViewYear] = useState(() => new Date().getFullYear());
@@ -29,7 +38,7 @@ export default function Feeding() {
 
   const records = feedingRecords
     .filter((r) => r.petId === currentPetId)
-    .sort((a, b) => b.date.localeCompare(a.date));
+    .sort((a, b) => b.date.localeCompare(a.date) || b.time.localeCompare(a.time));
 
   const fedDates = useMemo(() => {
     const set = new Set<string>();
@@ -64,13 +73,61 @@ export default function Feeding() {
     }
   }
 
-  function handleAdd() {
-    if (!date) return;
-    addFeedingRecord({ petId: currentPetId!, date, time, foodType, amount });
+  function validateForm(): boolean {
+    const newErrors: FormErrors = {};
+
+    if (!date) {
+      newErrors.date = '日期不能为空';
+    }
+
+    if (!amount.trim()) {
+      newErrors.amount = '喂食份量不能为空';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  }
+
+  function openAddModal() {
+    setEditingRecord(null);
     setDate(getTodayStr());
     setTime('');
     setFoodType('干粮');
     setAmount('');
+    setErrors({});
+    setShowModal(true);
+  }
+
+  function openEditModal(record: FeedingRecord) {
+    setEditingRecord(record);
+    setDate(record.date);
+    setTime(record.time);
+    setFoodType(record.foodType);
+    setAmount(record.amount);
+    setErrors({});
+    setShowModal(true);
+  }
+
+  function handleSubmit() {
+    if (!validateForm()) return;
+
+    if (editingRecord) {
+      updateFeedingRecord(editingRecord.id, {
+        date,
+        time,
+        foodType,
+        amount: amount.trim(),
+      });
+    } else {
+      addFeedingRecord({
+        petId: currentPetId!,
+        date,
+        time,
+        foodType,
+        amount: amount.trim(),
+      });
+    }
+
     setShowModal(false);
   }
 
@@ -79,7 +136,7 @@ export default function Feeding() {
       <div className="flex items-center justify-between">
         <h1 className="font-display text-2xl text-warm-700">喂食记录</h1>
         <button
-          onClick={() => setShowModal(true)}
+          onClick={openAddModal}
           className="w-9 h-9 rounded-full bg-warm-500 text-white flex items-center justify-center hover:bg-warm-600 transition-colors"
         >
           <Plus size={18} />
@@ -142,45 +199,81 @@ export default function Feeding() {
                   {rec.date} {rec.time}
                 </div>
               </div>
-              <button
-                onClick={() => deleteFeedingRecord(rec.id)}
-                className="p-1.5 rounded-lg text-warm-300 hover:text-coral-400 hover:bg-coral-50 transition-colors"
-              >
-                <Trash2 size={16} />
-              </button>
+              <div className="flex items-center gap-1 ml-2 flex-shrink-0">
+                <button
+                  onClick={() => openEditModal(rec)}
+                  className="p-1.5 rounded-lg text-warm-400 hover:text-warm-600 hover:bg-warm-50 transition-colors"
+                >
+                  <Pencil size={16} />
+                </button>
+                <button
+                  onClick={() => deleteFeedingRecord(rec.id)}
+                  className="p-1.5 rounded-lg text-warm-300 hover:text-coral-400 hover:bg-coral-50 transition-colors"
+                >
+                  <Trash2 size={16} />
+                </button>
+              </div>
             </div>
           ))}
         </div>
       )}
 
-      <Modal isOpen={showModal} onClose={() => setShowModal(false)} title="添加喂食记录">
+      <Modal
+        isOpen={showModal}
+        onClose={() => setShowModal(false)}
+        title={editingRecord ? '编辑喂食记录' : '添加喂食记录'}
+      >
         <div className="space-y-4">
           <div>
-            <label className="label-text">日期</label>
-            <input type="date" className="input-field" value={date} onChange={(e) => setDate(e.target.value)} />
+            <label className="label-text">日期 <span className="text-coral-400">*</span></label>
+            <input
+              type="date"
+              className={`input-field ${errors.date ? 'border-coral-400 focus:ring-coral-400' : ''}`}
+              value={date}
+              onChange={(e) => {
+                setDate(e.target.value);
+                if (errors.date) setErrors((prev) => ({ ...prev, date: undefined }));
+              }}
+            />
+            {errors.date && <p className="text-xs text-coral-400 mt-1">{errors.date}</p>}
           </div>
           <div>
             <label className="label-text">时间</label>
-            <input type="time" className="input-field" value={time} onChange={(e) => setTime(e.target.value)} />
+            <input
+              type="time"
+              className="input-field"
+              value={time}
+              onChange={(e) => setTime(e.target.value)}
+            />
           </div>
           <div>
             <label className="label-text">食物类型</label>
-            <select className="input-field" value={foodType} onChange={(e) => setFoodType(e.target.value)}>
+            <select
+              className="input-field"
+              value={foodType}
+              onChange={(e) => setFoodType(e.target.value)}
+            >
               {foodTypeOptions.map((t) => (
                 <option key={t} value={t}>{t}</option>
               ))}
             </select>
           </div>
           <div>
-            <label className="label-text">份量</label>
+            <label className="label-text">份量 <span className="text-coral-400">*</span></label>
             <input
-              className="input-field"
+              className={`input-field ${errors.amount ? 'border-coral-400 focus:ring-coral-400' : ''}`}
               value={amount}
-              onChange={(e) => setAmount(e.target.value)}
+              onChange={(e) => {
+                setAmount(e.target.value);
+                if (errors.amount) setErrors((prev) => ({ ...prev, amount: undefined }));
+              }}
               placeholder="如：50g、一碗"
             />
+            {errors.amount && <p className="text-xs text-coral-400 mt-1">{errors.amount}</p>}
           </div>
-          <button onClick={handleAdd} className="btn-primary w-full">添加</button>
+          <button onClick={handleSubmit} className="btn-primary w-full">
+            {editingRecord ? '保存修改' : '添加'}
+          </button>
         </div>
       </Modal>
     </div>

@@ -20,15 +20,19 @@ interface PetStore {
   deletePet: (id: string) => void;
 
   addVaccineRecord: (record: Omit<VaccineRecord, 'id'>) => void;
+  updateVaccineRecord: (id: string, data: Partial<Omit<VaccineRecord, 'id' | 'petId'>>) => void;
   deleteVaccineRecord: (id: string) => void;
 
   addWeightRecord: (record: Omit<WeightRecord, 'id'>) => void;
+  updateWeightRecord: (id: string, data: Partial<Omit<WeightRecord, 'id' | 'petId'>>) => void;
   deleteWeightRecord: (id: string) => void;
 
   addFeedingRecord: (record: Omit<FeedingRecord, 'id'>) => void;
+  updateFeedingRecord: (id: string, data: Partial<Omit<FeedingRecord, 'id' | 'petId'>>) => void;
   deleteFeedingRecord: (id: string) => void;
 
   addMedicalRecord: (record: Omit<MedicalRecord, 'id'>) => void;
+  updateMedicalRecord: (id: string, data: Partial<Omit<MedicalRecord, 'id' | 'petId'>>) => void;
   deleteMedicalRecord: (id: string) => void;
 }
 
@@ -83,6 +87,12 @@ export const usePetStore = create<PetStore>()(
         set((state) => ({
           vaccineRecords: [...state.vaccineRecords, { ...record, id: generateId() }],
         })),
+      updateVaccineRecord: (id, data) =>
+        set((state) => ({
+          vaccineRecords: state.vaccineRecords.map((r) =>
+            r.id === id ? { ...r, ...data } : r
+          ),
+        })),
       deleteVaccineRecord: (id) =>
         set((state) => ({
           vaccineRecords: state.vaccineRecords.filter((r) => r.id !== id),
@@ -91,6 +101,12 @@ export const usePetStore = create<PetStore>()(
       addWeightRecord: (record) =>
         set((state) => ({
           weightRecords: [...state.weightRecords, { ...record, id: generateId() }],
+        })),
+      updateWeightRecord: (id, data) =>
+        set((state) => ({
+          weightRecords: state.weightRecords.map((r) =>
+            r.id === id ? { ...r, ...data } : r
+          ),
         })),
       deleteWeightRecord: (id) =>
         set((state) => ({
@@ -101,6 +117,12 @@ export const usePetStore = create<PetStore>()(
         set((state) => ({
           feedingRecords: [...state.feedingRecords, { ...record, id: generateId() }],
         })),
+      updateFeedingRecord: (id, data) =>
+        set((state) => ({
+          feedingRecords: state.feedingRecords.map((r) =>
+            r.id === id ? { ...r, ...data } : r
+          ),
+        })),
       deleteFeedingRecord: (id) =>
         set((state) => ({
           feedingRecords: state.feedingRecords.filter((r) => r.id !== id),
@@ -109,6 +131,12 @@ export const usePetStore = create<PetStore>()(
       addMedicalRecord: (record) =>
         set((state) => ({
           medicalRecords: [...state.medicalRecords, { ...record, id: generateId() }],
+        })),
+      updateMedicalRecord: (id, data) =>
+        set((state) => ({
+          medicalRecords: state.medicalRecords.map((r) =>
+            r.id === id ? { ...r, ...data } : r
+          ),
         })),
       deleteMedicalRecord: (id) =>
         set((state) => ({
